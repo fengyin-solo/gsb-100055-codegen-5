@@ -10,13 +10,23 @@ from app.seed import SEED_ROWS
 
 
 class Store:
+    # 物探工作流自用的派生表（台账/清单/历史），不计入业务模块与运营概览
+    PRIVATE_TABLES = {
+        "geophysics_ledger",     # 勘探区采集台账
+        "geophysics_maps",       # 成果图清单
+        "geophysics_pending",    # 待处理列表
+        "geophysics_revisions",  # 修订历史（含原始上报口径留存）
+        "geophysics_ops",        # 已落地操作结果（断点续跑用）
+        "geophysics_meta",       # 全局修订号等工作流元数据
+    }
+
     def __init__(self) -> None:
         self._tables: dict[str, list[dict[str, Any]]] = {
             name: [dict(row) for row in rows] for name, rows in SEED_ROWS.items()
         }
 
     def module_names(self) -> list[str]:
-        return sorted(self._tables)
+        return sorted(name for name in self._tables if name not in self.PRIVATE_TABLES)
 
     def rows(self, module: str) -> list[dict[str, Any]]:
         return self._tables.setdefault(module, [])
